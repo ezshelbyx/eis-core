@@ -23,6 +23,9 @@ coverage.xml
 htmlcov/
 .tox/
 
+# --- Freebuff workspace metadata ---
+.freebuff/
+
 # --- E.I.S. Core runtime data ---
 data/logs/
 data/reports/
