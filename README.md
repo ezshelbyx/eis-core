@@ -41,8 +41,8 @@ local SQLite database. No telemetry, no cloud, no accounts.
 python __main__.py
 ```
 
-or double-click **`EIS-Core.bat`** (see [docs/INSTALL.md](docs/INSTALL.md) for setup details,
-optional components and portable installs).
+or double-click **`EIS-Core.bat`** — full walkthrough in the
+[User Guide](docs/USER-GUIDE.md); setup details in [docs/INSTALL.md](docs/INSTALL.md).
 
 ```bat
 :: optional: richer hardware telemetry
@@ -136,6 +136,7 @@ conventions and how to add a tool.
 
 | Document | Contents |
 |---|---|
+| [docs/USER-GUIDE.md](docs/USER-GUIDE.md) | **Plain-language guide: install, first run and daily use** |
 | [docs/INSTALL.md](docs/INSTALL.md) | Installing Python, optional components, portable setup, first run |
 | [docs/DEVELOPER.md](docs/DEVELOPER.md) | Architecture, coding conventions, testing, adding modules/tools |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems and fixes (ADB, admin rights, SMART, …) |
