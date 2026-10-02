@@ -18,7 +18,11 @@ log = logging.getLogger(__name__)
 
 LEVELS = ("V", "D", "I", "W", "E", "F")
 _LEVEL_NAMES = {"V": "Verbose", "D": "Debug", "I": "Info", "W": "Warning", "E": "Error", "F": "Fatal"}
-_LINE_RE = re.compile(r"^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)\s+([VDIWEF])\s*/\s*([^(]*?)\(\s*(\d+)\):\s(.*)$")
+# 'threadtime' format (adb logcat -v threadtime):
+#   MM-DD HH:MM:SS.mmm  PID  TID LEVEL TAG: message
+_LINE_RE = re.compile(
+    r"^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+(.+?):\s(.*)$"
+)
 
 
 class LogcatBuffer:
@@ -110,8 +114,9 @@ class LogcatBuffer:
         m = _LINE_RE.match(raw)
         if m:
             return {
-                "time": m.group(1), "level": m.group(2), "tag": m.group(3).strip(),
-                "pid": m.group(4), "message": m.group(5), "raw": raw,
+                "time": m.group(1), "pid": m.group(2), "tid": m.group(3),
+                "level": m.group(4), "tag": m.group(5).strip(),
+                "message": m.group(6), "raw": raw,
             }
         return {"time": "", "level": "?", "tag": "", "pid": "", "message": raw, "raw": raw}
 

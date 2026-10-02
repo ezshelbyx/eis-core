@@ -31,6 +31,8 @@ data/logs/
 data/reports/
 data/backups/
 data/exports/
+data/downloads/
+data/settings.json
 *.log
 data/eis.db
 *.db-journal
