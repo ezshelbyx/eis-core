@@ -1,0 +1,10 @@
+# E.I.S. Core runtime dependencies
+#
+# The application runs on the Python standard library alone
+# (Python 3.10+ with tkinter and sqlite3, both bundled with the
+# python.org Windows installer). Nothing is required here.
+#
+# Optional enhancements:
+#   pip install psutil        # richer CPU/RAM/process telemetry
+#
+# Development dependencies are listed in requirements-dev.txt.
