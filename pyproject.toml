@@ -1,44 +1,30 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eis-core"
+name = "redkit"
 version = "0.1.0"
-description = "E.I.S. Core - lightweight technician, diagnostic, repair and utility platform for Windows"
+description = "Scope-guarded offensive security toolkit for authorized penetration tests - built for Kali NetHunter on Android."
 readme = "README.md"
-requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "E.I.S. Community" }]
-keywords = ["technician", "diagnostics", "repair", "windows", "tkinter", "sqlite"]
+authors = [{ name = "redkit contributors" }]
+requires-python = ">=3.9"
+keywords = ["security", "pentest", "nethunter", "recon", "scanner"]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Environment :: Win32 (MS Windows)",
-    "Intended Audience :: System Administrators",
-    "Intended Audience :: End Users/Desktop",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: Microsoft :: Windows :: Windows 10",
-    "Operating System :: Microsoft :: Windows :: Windows 11",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: System :: Diagnostics",
-    "Topic :: System :: Systems Administration",
-    "Topic :: Utilities",
+    "Topic :: Security",
 ]
 dependencies = []
 
-[project.optional-dependencies]
-psutil = ["psutil"]
-dev = ["pytest>=8.0"]
-
-[project.gui-scripts]
-eis-core = "eis.app:main"
+[project.scripts]
+redkit = "redkit.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["eis*"]
+include = ["redkit*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

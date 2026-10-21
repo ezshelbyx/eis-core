@@ -1,154 +1,136 @@
-# E.I.S. Core — Electronic Intelligence & Service Core
+# redkit
 
-**A lightweight, community-focused technician, diagnostic, repair and utility platform for Windows.**
+**Scope-guarded offensive security toolkit for authorized penetration tests — built to run in Kali NetHunter on an Android phone.**
 
-E.I.S. Core gives PC technicians, repair shops and power users one professional dashboard for
-hardware inspection, Windows repair, Android servicing, network diagnostics, file forensics and a
-searchable troubleshooting knowledge base — built entirely on the Python standard library with a
-local SQLite database. No telemetry, no cloud, no accounts.
+Pure Python standard library. No pip, no dependencies, no build step. Copy the folder into your NetHunter Kali chroot and run it.
 
-![E.I.S. Core](screenshots/dashboard.png)
+```
+███    ██ ███████ ██    ██ ███████
+████   ██ ██       ██  ██  ██
+██ ██  ██ █████     ████   █████
+██  ██ ██ ██         ██    ██
+██   ████ ███████    ██    ███████
+```
 
----
+## Authorization required
 
-## Highlights
+This is a penetration-testing toolkit. **Only run it against systems you own or have written permission to test.** That means your home lab, your own devices, your own network — or a client engagement with a signed scope of work.
 
-- **One dashboard, eight sections** — System, Diagnostics, Repair, Android, Network, Files,
-  Knowledge and Settings, with a dark/light theme engine.
-- **Zero mandatory dependencies** — Python + Tkinter + SQLite is all you need. The optional
-  `psutil` package simply adds richer CPU/RAM detail when present.
-- **Safety engine built in** — destructive commands are classified, confirmed and (where
-  irreversibly dangerous) blocked outright; protected system directories are refused by cleaners
-  and the duplicate finder.
-- **Local-first data** — customers, devices, jobs, notes and command history live in a single
-  SQLite file you own; every action is logged with timestamps and results.
-- **Offline-friendly** — every tool degrades gracefully without internet, Android devices or
-  administrator rights.
+redkit enforces this technically, not just morally: every network command reads a **scope file** first, and refuses any target you have not explicitly authorized — before a single packet leaves your phone.
 
-## Requirements
+- Empty scope → every scan and web audit is refused (exit code 3).
+- Out-of-scope target → refused, with a reminder about written permission.
+- Scope never touches the network — checking a target costs nothing.
 
-| Component | Minimum |
-|---|---|
-| OS | Windows 10 / 11 (64-bit) |
-| Python | 3.10 or newer (3.13 recommended) — [python.org](https://www.python.org/downloads/) with *tcl/tk* included |
-| Disk | ~30 MB plus data |
-| Optional | `psutil` (richer hardware detail), Android *platform-tools* (ADB/Fastboot) |
+There is no `--force`, no `--i-know-what-im-doing`, no bypass flag. Adding a target to the scope *is* the authorization step.
+
+## Running on a NetHunter phone
+
+Python runs inside the **Kali chroot**, not Termux. Verified flow:
+
+1. Open the **NetHunter app** → **Kali Chroot Manager** → make sure a chroot is installed.
+2. Open **NetHunter Terminal** and pick the **Kali** session (not *Android* / *AndroidSu*).
+3. Copy this folder somewhere in the chroot:
+
+```sh
+# from Android storage, if the terminal can read it:
+mkdir -p ~/tools
+cp -r /sdcard/Download/redkit ~/tools/
+cd ~/tools/redkit
+```
+
+If `/sdcard/...` is not readable, enable "Allow access to manage all files" for NetHunter Terminal in Android settings.
+
+4. Check Python and run:
+
+```sh
+command -v python3 || (apt update && apt install -y python3)
+python3 -m redkit --version
+python3 -m redkit selftest
+```
+
+`python3 -m redkit` works from the repo root with **zero installation**. If you want the short `redkit` command instead: `pip install .` (or `pip install --break-system-packages .` on newer Kali), but stdlib-direct is recommended — Kali discourages system-wide pip installs.
+
+Storage note: scope and findings live in `~/.redkit/` **inside the chroot**, so they survive `/sdcard` quirks. Override with `REDKIT_HOME=/path` if needed.
 
 ## Quick start
 
-```bat
-:: from the project folder
-python __main__.py
+```sh
+# 1. Authorize your targets (this is the permission step)
+python3 -m redkit scope add 192.168.1.0/24          # your LAN
+python3 -m redkit scope add example.com             # a client domain
+python3 -m redkit scope list
+
+# 2. Port-scan an authorized host
+python3 -m redkit scan 192.168.1.10
+python3 -m redkit scan 192.168.1.10 -p 22,80,443,8000-8100
+python3 -m redkit scan 192.168.1.0/24 -p 445,3389 -t 0.5 -w 128
+
+# 3. Audit a website's hardening headers
+python3 -m redkit web https://example.com
+python3 -m redkit web https://example.com --no-paths
+
+# 4. Review everything you've found
+python3 -m redkit report
+python3 -m redkit report --clear    # start a fresh engagement
 ```
 
-or double-click **`EIS-Core.bat`** — full walkthrough in the
-[User Guide](docs/USER-GUIDE.md); setup details in [docs/INSTALL.md](docs/INSTALL.md).
-
-```bat
-:: optional: richer hardware telemetry
-pip install psutil
-
-:: run the test suite (development)
-python -m pytest tests/ -q
-```
-
-## Feature map
-
-### 🔧 System
-CPU, RAM, GPU, motherboard, BIOS, storage, OS and uptime viewer · connected-hardware scanner ·
-live RAM and CPU monitors (usage, cores/threads, frequency, temperature when exposed) · storage
-analyzer (drives, partitions, capacity, free space, filesystem) · SMART / Windows storage health
-checker.
-
-### 🩺 Diagnostics
-Windows event-log viewer with error/warning/critical filtering · process manager (PID, CPU, RAM,
-path, details) · installed applications manager with search and safe uninstall shortcuts · startup
-manager · Windows services manager (status, startup type, descriptions) · firewall, Windows
-Defender and restore-point status centers (Defender is *never* disabled by E.I.S.).
-
-### 🛠️ Repair
-SFC repair center with progress output and logs · DISM health check / scan / repair center · DNS
-cache flush · temporary-file cleaner with selectable locations and estimated recoverable space ·
-network reset center with explicit confirmation.
-
-### 🤖 Android
-ADB & Fastboot auto-detection · device information (model, manufacturer, Android version, serial,
-build) · curated safe command presets plus an advanced manual console (safety-gated) · APK
-analyzer (package, version, permissions, SDK, metadata) · package manager (list / enable /
-disable / uninstall with confirmation) · backup assistant · Logcat viewer with filtering, search,
-pause, clear and export.
-
-### 🌐 Network
-Adapter viewer (IP, gateway, DNS, MAC) · ping tool with latency, packet loss and history · DNS
-lookup and record diagnostics · layered internet connectivity tests (gateway → DNS → external) ·
-Wi-Fi information viewer · port tester for selected hosts/ports · non-invasive local network
-discovery.
-
-### 📁 Files
-Hashing tool (MD5, SHA-1, SHA-256, SHA-512) with verification · hash-based duplicate finder that
-refuses protected directories · file metadata inspector · secure password & passphrase generator
-(cryptographically secure randomness) · QR payloads for Wi-Fi, URLs, text and technician contact.
-
-### 📚 Knowledge
-Searchable troubleshooting knowledge base connecting errors with causes, diagnostics and
-solutions · community-extensible with custom entries · helpful/not-helpful feedback.
-
-### 🗄️ Workspace
-SQLite technician database for customers, devices, jobs, repair records and notes · command
-history with timestamps, results, errors and diagnostic logs · report generator exporting TXT,
-JSON and HTML technical reports · settings center for appearance, language, logging, safety,
-permissions and tool preferences.
-
-## Safety philosophy
-
-E.I.S. Core is a repair tool — it must never be the reason a system dies. The safety engine
-([`eis/core/safety.py`](eis/core/safety.py)) classifies every command as *read*, *state-changing*,
-*destructive* or **blocked**; destructive actions require explicit confirmation, and patterns such
-as `format`, `diskpart`, `shutdown`, `fastboot flashing unlock` or `adb shell su` are refused
-outright. Cleaners and the duplicate finder refuse to operate inside protected directories
-(Windows, Program Files, user profile folders, drive roots). Administrator rights are requested
-only when a tool genuinely requires them. Details: [docs/SECURITY.md](docs/SECURITY.md).
-
-## Architecture
+Example scan output:
 
 ```
-eis/
-├── app.py              # application entry (main())
-├── core/               # settings, safety engine, command runner, logging, paths, privilege
-├── database/           # SQLite connection, migrations, repositories (customers, jobs, history)
-├── modules/
-│   ├── system/         # system info, hardware, monitors, storage/SMART
-│   ├── windows/        # os info, processes, apps, startup, repair, maintenance, events,
-│   │                   # services, security
-│   ├── network/        # adapters, ping, dns, connectivity, wifi, ports, discovery
-│   ├── android/        # adb/fastboot, console, apk, packages, backup, logcat
-│   ├── files/          # hashing, duplicates, metadata, generators, wordlist
-│   ├── knowledge/      # KB engine + built-in entries
-│   └── reports/        # TXT/JSON/HTML report generator
-└── ui/                 # Tkinter app shell, theme, widgets + one view per section
+192.168.1.10                               22/tcp  open  SSH-2.0-OpenSSH_9.6
+192.168.1.10                              443/tcp  open
+-- 1 host(s) up, 2 open port(s), 16 probes
 ```
 
-The UI never blocks: long operations run in worker threads and post results to a queue that the
-main loop pumps. See [docs/DEVELOPER.md](docs/DEVELOPER.md) for the threading pattern, module
-conventions and how to add a tool.
+## Commands
 
-## Documentation
-
-| Document | Contents |
+| Command | What it does |
 |---|---|
-| [docs/USER-GUIDE.md](docs/USER-GUIDE.md) | **Plain-language guide: install, first run and daily use** |
-| [docs/INSTALL.md](docs/INSTALL.md) | Installing Python, optional components, portable setup, first run |
-| [docs/DEVELOPER.md](docs/DEVELOPER.md) | Architecture, coding conventions, testing, adding modules/tools |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems and fixes (ADB, admin rights, SMART, …) |
-| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Reporting issues, PR workflow, code style, release process |
-| [docs/SECURITY.md](docs/SECURITY.md) | Safety engine, data handling, vulnerability reporting |
+| `scope add\|remove\|list\|show` | Manage authorized targets (IPs, CIDRs up to /24, domains incl. `*.wildcard`) |
+| `scan <targets> -p <ports>` | TCP connect scan with banner grabbing. Threaded, timeout/worker tunable. Max /24 per scan. |
+| `web <url>` | Security header audit: missing hardening headers, server disclosure, insecure cookies, exposed paths (`.git/HEAD`, `.env`, `/server-status`, ...). |
+| `report [--clear]` | Summarize recorded findings by target with severity totals |
+| `selftest` | Built-in checks, no network needed — good first command on a new phone |
 
-## Project status
+Exit codes: `0` success · `1` findings (scan/web) · `2` bad usage · `3` refused (out of scope / empty scope).
 
-E.I.S. Core is at **v0.1.0** — feature-complete for its first release, covered by a 150-test
-automated suite (`python -m pytest tests/ -q`), and documented for both users and contributors.
-It is developed in the open for the E.I.S. community.
+## Design notes
 
-## License
+- **Fail closed.** Scope checks happen before any DNS lookup or socket. If the scope file is unreadable, nothing runs.
+- **Stdlib only.** `socket`, `ssl`, `urllib`, `argparse` — nothing to install, works in a minimal chroot.
+- **Phone-friendly threading.** Connect scans default to 64 workers (cap: 256) to stay inside Android's file-descriptor limits; tune with `-w`.
+- **Findings as JSON lines.** `$REDKIT_HOME/findings.jsonl` — one JSON object per line, greppable, append-safe, tolerant of partial lines.
+- **No raw sockets needed.** A TCP connect scan works unprivileged, so it behaves the same in the Kali chroot whether or not you're root.
 
-MIT — see [LICENSE](LICENSE). Use it, study it, ship it, improve it.
+## Development
+
+```sh
+python3 -m venv .venv && .venv/bin/pip install pytest
+.venv/bin/python -m pytest tests/ -q      # 39 tests, all offline
+```
+
+Module layout:
+
+```
+redkit/
+├── cli.py           # argparse subcommands, exit codes, refusal handling
+├── scope.py         # authorization model (the heart of the tool)
+├── store.py         # findings.jsonl read/write
+└── modules/
+    ├── scan.py      # port parse, threaded connect scan, banner grab
+    └── websec.py    # header audit, cookie checks, path probes
+```
+
+Adding a module: put it in `redkit/modules/`, take `scope: Scope` as a parameter, call `scope.require(target)` first, record `Finding` objects via `store.record`, wire a subcommand in `cli.py`, add tests under `tests/`.
+
+## Legal
+
+MIT licensed (see `LICENSE`). The license covers the code, not your use of it. Scanning systems without authorization is a crime in most jurisdictions — including systems that are attacking you. If you're dealing with an active attacker, keep evidence (IPs, logs, timestamps), report it to your provider/platform, and talk to a lawyer or law enforcement rather than striking back. This tool is for testing what you're authorized to test.
+
+## Roadmap
+
+- TLS certificate inspection (expiry, chain, weak ciphers) in `web`
+- `dns` module: zone-walk friendly record enumeration (in-scope only)
+- JSON output flag (`--json`) for piping into other tooling
+- Wordlist-driven content discovery beyond the fixed probe list

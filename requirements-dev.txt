@@ -1,2 +1,0 @@
-# E.I.S. Core development dependencies
-pytest>=8.0
